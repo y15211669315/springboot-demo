@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="https://cdn.bootcss.com/jquery/1.10.2/jquery.min.js"></script>
+    <script>
+        var exces = null; // 表格属性信息
+        var sheets = 0; // 存储工作表的下标
+        var column = []; // 存储后台字段信息
+
+        function import_() {
+            $("#show_").css("display", "block");
+        }
+
+        function next(obj) {
+            var data = new FormData();
+            data.append("file", $("#file").get(0).files[0])
+            $.ajax({
+                url: "/evaluate/getFileInfo",
+                type: "post",
+                data: data,
+                processData: false,
+                contentType: false,
+                dataType: "json",
+                success: function (res) {
+                    exces = res.data.excels;
+                    $("#sheet").append('工作表选择：');
+                    for (var i = 0; i < exces.length; i++) {
+                        $("#sheet").append('<input type="checkbox" value="' + i + '" name="sheet">' + exces[i].sheetName + '&nbsp&nbsp');
+                    }
+                    $("#sheet").append('<button style="margin-left: 20px" id="btn2" onclick="next2()">下一步</button>');
+                    $("#sheet").css("display", "block");
+                },
+                error: function (err) {
+                    alert("网络连接失败,稍后重试", err);
+                }
+            });
+            $(obj).css("display", "none");
+        }
+
+        function next2() {
+            sheets = 0
+            $("#title #selectSheet").html('<option selected value="-1">请选择工作表</option>');
+            $("#sheet input[type=checkbox]").each(function () {
+                if (this.checked) {
+                    var data = exces[this.value];
+                    $("#title #selectSheet").append('<option value="' + this.value + '">' + data.sheetName + '</option>');
+                    sheets = this.value;
+                }
+            });
+            $("#title").css("display", "block");
+            $("#btn2").css("display", "none");
+            $("#title").append('<button style="margin-left: 20px" id="btn3" onclick="tj()">导入</button>');
+        }
+
+        function tj() {
+            $("#tab select").each(function () {
+                column.push($(this).val());
+            });
+            send();
+        }
+
+        function send() {
+            var data = new FormData();
+            data.append("sheets", sheets[0]);
+            for (var i = 0; i < column.length; i++) {
+                data.append("columns", column[i]);
+            }
+            data.append("file", $("#file").get(0).files[0])
+            $.ajax({
+                url: "/evaluate/import",
+                type: "post",
+                data: data,
+                processData: false,
+                contentType: false,
+                dataType: "json",
+                success: function (res) {
+                    alert(res.data)
+                    location.reload(true);
+                },
+                error: function (err) {
+                    alert("网络连接失败,稍后重试", err);
+                }
+            });
+        }
+
+        function qx(obj) {
+            $("#col input[name=col]").each(function () {
+                this.checked = obj.checked;
+            });
+        }
+
+        function dc() {
+            var titles = [];
+            var titleIndex = [];
+            var orders = [];
+            // 获取标题，获取顺序
+            $("#col span[name=title]").each(function () {
+                if ($(this).prev().is(":checked")) {
+                    titleIndex.push($(this).attr('value'));
+                    titles.push($(this).text());
+                    orders.push($(this).next().val());
+                }
+            })
+            // 发送导出请求
+            $.ajax({
+                type:'post',
+                url: '/evaluate/export',
+                data:JSON.stringify({
+                    time1: $("#time1").val(),
+                    time2: $("#time2").val(),
+                    titleIndex: titleIndex,
+                    title: titles,
+                    orders: orders
+                }),
+                contentType:'application/json;charset=utf-8',
+                dataType:'text',
+                success:function(data){
+                    alert(data);
+                }
+            });
+        }
+
+        $(function () {
+            $("#selectSheet").change(function () {
+                if (this.value != -1) {
+                    $("#tab").html("");
+                    var data = exces[this.value]
+                    $("#tab").append('<tr><td width="70">表格字段</td><td width="70">后台字段</td></tr>');
+                    for (var i = 0; i < data.titles.length; i++) {
+                        var tr = '<tr><td>' + data.titles[i] + '</td>';
+                        var select = '<select>';
+                        for (var j = 0; j < data.columns.length; j++) {
+                            select += '<option value="' + j + '">' + data.columns[j] + '</option>';
+                        }
+                        tr += '<td>' + (select + '</select>') + '</td></tr>';
+                        $("#tab").append(tr);
+                    }
+                } else {
+                    $("#tab").html("");
+                }
+            });
+
+            $("#search").click(function () {
+                $.get("/evaluate/time", {time1: $("#time1").val(), time2: $("#time2").val()}, function (data) {
+                    var body = '';
+                    for (var i = 0; i < data.list.length; i++) {
+                        body += '<tr><td>' + data.list[i].id + '</td><td>' + data.list[i].content + '</td><td>' + data.list[i].createTime + '</td><td>' + data.list[i].userId + '</td></tr>';
+                    }
+                    $("#trBody").html("");
+                    $("#trBody").append(body);
+                }, "json");
+            });
+
+            $("#export").click(function () {
+                $.get("/evaluate/column", function (data) {
+                    $("#col").html('');
+                    var body = '<input type="checkbox" onclick="qx(this)"><span contenteditable="true" style="margin-right: 80px">标题</span> &nbsp; 顺序<br/>';
+                    for (var i = 0; i < data.length; i++) {
+                        body += '<input name="col" type="checkbox" value="' + i + '"><span contenteditable="true" name="title" value="' + i + '" style="margin-right: 80px">' + data[i] + '</span> &nbsp; <input style="width: 25px;" value="' + i + '" /><br/>';
+                    }
+                    $("#col").append(body);
+                    $("#col").append("<br/><button onclick='dc()'>导出</button>");
+                }, "json");
+            });
+        });
+    </script>
+</head>
+<body>
+<div style="background-color: rebeccapurple;">
+    <button onclick="import_()">导入数据</button>
+</div>
+<br/>
+<div id="show_" style="display: none;">
+    请选择要导入的excel文件：<input type="file" id="file">
+    <button style="margin-left: 20px" onclick="next(this)">下一步</button>
+    <br/>
+    <div id="sheet" style="display: none;">
+    </div>
+    <div style="margin-top: 20px;display: none;" id="title">
+        映射工作表字段：
+        <select id="selectSheet"></select><br/>
+        <br/>
+        <table id="tab">
+        </table>
+    </div>
+</div>
+<br/>
+查询条件：<br/><br/>
+开始时间-结束时间：<input id="time1"> - <input id="time2">
+<button id="search">查询</button>
+<button id="export">导出数据</button>
+<br/><br/>
+导出内容：
+<div id="col"></div>
+<br/>
+数据列表：<br/>
+<hr/>
+<table style="border: 1px;">
+    <tr>
+        <td width="80">ID</td>
+        <td width="250">内容</td>
+        <td width="200">创建时间</td>
+        <td width="80">评论人ID</td>
+    </tr>
+    <tbody id="trBody">
+    <tr th:each="item : ${list}">
+        <td th:text="${item.id}"></td>
+        <td th:text="${item.content}"></td>
+        <td th:text="${item.createTime}"></td>
+        <td th:text="${item.userId}"></td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>
