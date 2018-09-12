@@ -109,7 +109,6 @@ public class WxApi {
             MatrixToImageWriter.writeToStream(bitMatrix, "jpg", response.getOutputStream());
         } catch (WriterException e) {
             e.printStackTrace();
-
         } catch (IOException e) {
             e.printStackTrace();
         }

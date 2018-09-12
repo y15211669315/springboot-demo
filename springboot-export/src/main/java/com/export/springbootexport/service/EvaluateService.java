@@ -69,7 +69,7 @@ public class EvaluateService {
                 append(evaluate.getTime1().getMonth()).append("月").append(evaluate.getTime1().getDay()).append("日到").
                 append(evaluate.getTime2().getYear()).append("年").
                 append(evaluate.getTime2().getMonth()).append("月").append(evaluate.getTime2().getDay()).append("日的数据").toString();
-        String path = "C:\\Ysg\\upload\\evaluate.xls";
+        String path = "/opt/xxx.xls";
         JxlUtil.export(evaluate.getTitle(), evaluate.getOrders(), list, sheetName, path, 0, evaluate.getTitleIndex());
         return "后台导出中……";
     }

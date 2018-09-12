@@ -8,4 +8,4 @@ fdfs:
     width: 150
     height: 150
   tracker-list:            #TrackerList参数,支持多个
-    - 120.79.246.239:22122
+    - www.gsdi.cc:9080
