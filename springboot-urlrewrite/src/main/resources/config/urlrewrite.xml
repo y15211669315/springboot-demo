@@ -10,4 +10,10 @@
         <to>/user/$2</to>
     </rule>
 
+    <!-- 用户查询 -->
+    <rule>
+        <from>^/user/woqu/(\d+)/(\d{4}-\d{2}-\d{2})/(\w{4})\.html$</from>
+        <to>/user/woqu?id=$1&amp;name=$2</to>
+    </rule>
+
 </urlrewrite>
