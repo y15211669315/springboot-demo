@@ -57,7 +57,6 @@ public class Demo {
         CartEntity cartEntity = new CartEntity();
         for (int i = 0; i < 1000; i++) {
             for (int j = 0; j < 1000; j++) {
-                new Color(2, 4, 23);
                 CartEntity.Pixel pixel = cartEntity.new Pixel(i, j, (int) (Math.random() * 256), (int) (Math.random() * 256), (int) (Math.random() * 256));
                 list.add(pixel);
             }
