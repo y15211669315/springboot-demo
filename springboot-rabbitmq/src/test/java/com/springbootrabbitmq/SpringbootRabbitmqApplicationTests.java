@@ -18,10 +18,4 @@ public class SpringbootRabbitmqApplicationTests {
     @Autowired
     private HelloSender helloSender;
 
-    @Test
-    public void hello(){
-        helloSender.send();
-    }
-
-
 }

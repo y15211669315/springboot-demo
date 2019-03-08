@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+    <script>
+        // 初始化数据
+        var socket, to, content;
+        var names = ["小鸟依人", "举世无双", "嘴唇", "毛笔", "天空白云", "高楼大厦", "人丑无敌", "花花草草", "狼形大发", "鼠标滴滴哒"];
+        $(function () {
+            content = document.getElementById("content");
+            document.getElementById("name").value = names[Math.floor(Math.random() * names.length)];
+        });
+        // 打开连接
+        function onOpen() {
+            var name = document.getElementById("name").value;
+            socket = new WebSocket('ws:localhost:8080/sk/' + name);
+            socket.onopen = function (ev) {
+                content.append("连接上服务器\n")
+                var data = eval(ev.data);
+                console.info(data);
+            };
+            socket.onmessage = function (ev) { content.innerText = ev.data + '\n' }
+            socket.onclose = function (ev) { content.append("和服务器断开连接\n") }
+        }
+
+        function onClose() {
+            socket.close();
+        }
+
+        function sendMessasge() {
+            var message = document.getElementById("message").value;
+            $.get("http://localhost:8080/test?message="+message + "&username=" + name, function (ev) {
+                content.append("您发送内容：" + message + "\n");
+            });
+        }
+    </script>
+</head>
+<body>
+<div>
+    名字：<input id="name" readonly style="margin-right: 10px">
+    <button onclick="onOpen()">连 接</button>
+    <button style="margin-left: 10px;" onclick="onClose()">断 开</button><br/><br/>
+    消息：<textarea rows="20" id="content" style="width: 450px;"></textarea>
+    <select id="tos"></select>
+    <br/><br/>
+    <input style="margin-left: 48px;margin-right: 10px" id="message"><button onclick="sendMessasge()">发 送</button>
+</div>
+
+</body>
+</html>

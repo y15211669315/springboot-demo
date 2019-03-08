@@ -1,0 +1,6 @@
+spring:
+  rabbitmq:
+    username: zonghui
+    password: zongHui_666
+    host: www.zonghui.xyz
+    port: 5672
